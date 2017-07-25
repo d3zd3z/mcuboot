@@ -1,0 +1,64 @@
+mcuboot and Ed25519 signatures
+==============================
+
+Ed25519 is a public-key signature system based on elliptic curve
+cryptography.  It is designed to be efficient, have a high security
+level, and be resiliant to timing attacks.  It is described at
+https://ed25519.cr.yp.to/.  There is a reasonably fast reference
+implementation, that however is likely too large for a bootloader (the
+library is a little over 100KBytes).
+
+Daniel Bernstein, et al, have also published a much smaller
+implementation, known as tweetnacl, found at
+https://tweetnacl.cr.yp.to/.  This is much smaller (around 3KB),
+although significantly slower (on the order of 30-35 times slower).
+There are some situations with the bootloader where a 1-1.5 second
+signature verification is usable, and the small codebase, and small
+signature size are an advantage.
+
+Both libraries are public domain.
+
+Key formats
+-----------
+
+The Ed25519 spec only covers the bare private and public keys, and
+most libraries implementing it only implement the bare signing and
+verification.
+
+Various standards (PKCS#8) are slowly adopting Ed25519 (as well as
+Curve448).  The draft RFC
+https://tools.ietf.org/html/draft-ietf-curdle-pkix-00, especially
+section 10 describes how to represent these signatures in ASN.1.
+
+As a reference, we refer to the Rust `Ring`_ crypto library, for an
+interpretation of these standards to key storage format.
+
+We are implementing id-Curve25519ph, the pre-hash variant.  As
+implemented, the reference code requires the signatures to be attached
+to the message (and to have ram sufficient to hold the whole message
+plus signature).  Because this is not useful for verifying a firmware
+image in a RAM-limited target, we instead sign the hash of the
+firmware image.  This is discussed in the `eddsa paper`_.  It is
+believed to be secure, but defeats additional measures taken by
+Ed25519 to overcome weaknesses in the hashing function itself.
+
+Imgtool
+-------
+
+Imgtool has been enhanced to support generation and operation on these
+Ed25519 keys.  As mentioned above, the Python ed25519 library only
+supports bare key generation, signing, and verification.  This also
+contains a python implementation that attempts to implement PKCS#8
+with the extensions for this curve.  It matches the Ring
+implementation, as this is the only code that could be found to store
+these keys.
+
+The public key is stored bare in the mcuboot image, as it is merely a
+32-byte opaque block of binary data.  The signature is also stored as
+the raw 64-byte opaque block in the TLV itself.  The verification
+assembles the 64-byte signature with the 32-byte SHA256 hash of the
+image and uses the tweetnacl library to validate the signature.
+
+.. _Ring: https://github.com/briansmith/ring
+
+.. _eddsa paper: https://cr.yp.to/papers.html#eddsa
