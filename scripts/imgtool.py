@@ -26,7 +26,10 @@ def do_keygen(args):
 
 def do_getpub(args):
     key = keys.load(args.key)
-    key.emit_c()
+    if args.rust:
+        key.emit_rust()
+    else:
+        key.emit_c()
 
 def do_sign(args):
     if args.rsa_pkcs1_15:
@@ -73,6 +76,8 @@ def args():
 
     getpub = subs.add_parser('getpub', help='Get public key from keypair')
     getpub.add_argument('-k', '--key', metavar='filename', required=True)
+    getpub.add_argument('--rust',
+            help='Output a Rust fragment instead of C', default=False, action='store_true')
 
     sign = subs.add_parser('sign', help='Sign an image with a private key')
     sign.add_argument('-k', '--key', metavar='filename')
