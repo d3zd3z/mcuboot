@@ -135,7 +135,7 @@ boot_scratch_trailer_sz(uint8_t min_write_sz)
 static uint32_t
 boot_magic_off(const struct flash_area *fap)
 {
-    assert(offsetof(struct image_trailer, magic) == 24);
+    assert(offsetof(struct image_trailer, magic) == 16);
     return fap->fa_size - BOOT_MAGIC_SZ;
 }
 
@@ -176,21 +176,28 @@ boot_copy_done_off(const struct flash_area *fap)
 {
     assert(fap->fa_id != FLASH_AREA_IMAGE_SCRATCH);
     assert(offsetof(struct image_trailer, copy_done) == 0);
-    return fap->fa_size - BOOT_MAGIC_SZ - BOOT_MAX_ALIGN * 3;
+    return fap->fa_size - BOOT_MAGIC_SZ - BOOT_MAX_ALIGN * 2;
 }
 
 static uint32_t
 boot_image_ok_off(const struct flash_area *fap)
 {
     assert(offsetof(struct image_trailer, image_ok) == 8);
-    return fap->fa_size - BOOT_MAGIC_SZ - BOOT_MAX_ALIGN * 2;
+    return fap->fa_size - BOOT_MAGIC_SZ - BOOT_MAX_ALIGN;
 }
 
 static uint32_t
 boot_swap_size_off(const struct flash_area *fap)
 {
-    assert(offsetof(struct image_trailer, swap_size) == 16);
-    return fap->fa_size - BOOT_MAGIC_SZ - BOOT_MAX_ALIGN;
+    /*
+     * The "swap_size" field if located just before the trailer.
+     * The scratch slot doesn't store "copy_done"...
+     */
+    if (fap->fa_id == FLASH_AREA_IMAGE_SCRATCH) {
+        return fap->fa_size - BOOT_MAGIC_SZ - BOOT_MAX_ALIGN * 2;
+    }
+
+    return fap->fa_size - BOOT_MAGIC_SZ - BOOT_MAX_ALIGN * 3;
 }
 
 int

@@ -225,7 +225,7 @@ impl RunStatus {
         assert_eq!(slot1_base, slot0_base + slot0_len);
         assert_eq!(scratch_base, slot1_base + slot1_len);
 
-        let offset_from_end = c::boot_magic_sz() + c::boot_max_align() * 3;
+        let offset_from_end = c::boot_magic_sz() + c::boot_max_align() * 2;
 
         // println!("Areas: {:#?}", areadesc.get_c());
 
@@ -837,14 +837,14 @@ fn verify_image(flash: &Flash, offset: usize, buf: &[u8]) -> bool {
 fn verify_trailer(flash: &Flash, offset: usize,
                   magic: Option<&[u8]>, image_ok: Option<u8>,
                   copy_done: Option<u8>) -> bool {
-    let mut copy = vec![0u8; c::boot_magic_sz() + c::boot_max_align() * 3];
+    let mut copy = vec![0u8; c::boot_magic_sz() + c::boot_max_align() * 2];
     let mut failed = false;
 
     flash.read(offset, &mut copy).unwrap();
 
     failed |= match magic {
         Some(v) => {
-            if &copy[24..] != v  {
+            if &copy[16..] != v  {
                 warn!("\"magic\" mismatch at {:#x}", offset);
                 true
             } else {
@@ -930,7 +930,7 @@ const UNSET: Option<u8> = Some(0xff);
 
 /// Write out the magic so that the loader tries doing an upgrade.
 fn mark_upgrade(flash: &mut Flash, slot: &SlotInfo) {
-    let offset = slot.trailer_off + c::boot_max_align() * 3;
+    let offset = slot.trailer_off + c::boot_max_align() * 2;
     flash.write(offset, MAGIC_VALID.unwrap()).unwrap();
 }
 
