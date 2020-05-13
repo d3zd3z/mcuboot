@@ -37,6 +37,8 @@ pub enum FlashError {
     Write(String),
     #[fail(display = "Write failed by chance: {}", _0)]
     SimulatedFail(String),
+    #[fail(display = "Read from unwritten data")]
+    ReadFromUnwritten,
     #[fail(display = "{}", _0)]
     Io(#[cause] io::Error),
 }
@@ -223,9 +225,28 @@ impl Flash for SimFlash {
     }
 
     /// Read is simple.
+    #[cfg(not(feature = "checked-read"))]
     fn read(&self, offset: usize, data: &mut [u8]) -> Result<()> {
         if offset + data.len() > self.data.len() {
             bail!(ebounds("Read outside of device"));
+        }
+
+        let sub = &self.data[offset .. offset + data.len()];
+        data.copy_from_slice(sub);
+        Ok(())
+    }
+
+    /// The not-so-simple read case where we want to check the results.
+    #[cfg(feature = "checked-read")]
+    fn read(&self, offset: usize, data: &mut [u8]) -> Result<()> {
+        if offset + data.len() > self.data.len() {
+            bail!(ebounds("Read outside of device"));
+        }
+
+        if self.write_safe[offset .. offset + data.len()].iter()
+            .any(|x| *x)
+        {
+            return Err(FlashError::ReadFromUnwritten);
         }
 
         let sub = &self.data[offset .. offset + data.len()];

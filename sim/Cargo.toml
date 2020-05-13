@@ -21,6 +21,7 @@ enc-x25519 = ["mcuboot-sys/enc-x25519"]
 bootstrap = ["mcuboot-sys/bootstrap"]
 multiimage = ["mcuboot-sys/multiimage"]
 large-write = []
+checked-read = ["simflash/checked-read"]
 downgrade-prevention = ["mcuboot-sys/downgrade-prevention"]
 
 [dependencies]

@@ -8,7 +8,7 @@
 use crate::area::CAreaDesc;
 use libc;
 use log::{Level, log_enabled, warn};
-use simflash::{Result, Flash, FlashPtr};
+use simflash::{Result, Flash, FlashPtr, FlashError};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -195,6 +195,10 @@ pub extern fn sim_flash_erased_val(id: u8) -> u8 {
 fn map_err(err: Result<()>) -> libc::c_int {
     match err {
         Ok(()) => 0,
+        Err(FlashError::ReadFromUnwritten) => {
+            warn!("read from unwritten");
+            -5 // EIO.
+        }
         Err(e) => {
             warn!("{}", e);
             -1
