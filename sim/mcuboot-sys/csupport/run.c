@@ -1,7 +1,6 @@
 /* Run the boot image. */
 
 #include <assert.h>
-#include <errno.h>
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -302,7 +301,7 @@ void flash_area_close(const struct flash_area *area)
 /*
  * Read/write/erase. Offset is relative from beginning of flash area.
  */
-int _flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
+int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
                     uint32_t len)
 {
     BOOT_LOG_SIM("%s: area=%d, off=%x, len=%x",
@@ -335,7 +334,7 @@ int flash_area_erase(const struct flash_area *area, uint32_t off, uint32_t len)
     return sim_flash_erase(area->fa_device_id, area->fa_off + off, len);
 }
 
-int _flash_area_read_is_empty(const struct flash_area *area, uint32_t off,
+int flash_area_read_is_empty(const struct flash_area *area, uint32_t off,
         void *dst, uint32_t len)
 {
     uint8_t i;
@@ -346,9 +345,7 @@ int _flash_area_read_is_empty(const struct flash_area *area, uint32_t off,
 
     rc = sim_flash_read(area->fa_device_id, area->fa_off + off, dst, len);
     if (rc) {
-	/* TODO: We should distinguish between erased an partially
-	 * written. */
-        return -ENODATA;
+        return -1;
     }
 
     for (i = 0, u8dst = (uint8_t *)dst; i < len; i++) {
