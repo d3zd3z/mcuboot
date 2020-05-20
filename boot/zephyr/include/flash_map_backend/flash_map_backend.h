@@ -87,8 +87,16 @@ uint8_t flash_area_erased_val(const struct flash_area *fap);
  *
  * Returns 1 if erased, 0 if non-erased, and -1 on failure.
  */
-int flash_area_read_is_empty(const struct flash_area *fa, uint32_t off,
+int _flash_area_read_is_empty(const struct flash_area *fa, uint32_t off,
         void *dst, uint32_t len);
+#define flash_area_read_is_empty(_fap, _off, _dst, _len) \
+    ({ \
+        int _res = _flash_area_read_is_empty((_fap), (_off), (_dst), (_len)); \
+        printf("flash_area_read_is_empty: (%s:%d) %s:%d: 0x%llx 0x%llx -> %d\n", \
+               __FUNCTION__, __LINE__, \
+               __FILE__, __LINE__, (unsigned long long)(_off), (unsigned long long)(_len), _res); \
+        _res; \
+    })
 
 #ifdef __cplusplus
 }

@@ -20,6 +20,8 @@
 #ifndef H_UTIL_FLASH_MAP_
 #define H_UTIL_FLASH_MAP_
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -114,8 +116,16 @@ void flash_area_close(const struct flash_area *);
 /*
  * Read/write/erase. Offset is relative from beginning of flash area.
  */
-int flash_area_read(const struct flash_area *, uint32_t off, void *dst,
+int _flash_area_read(const struct flash_area *, uint32_t off, void *dst,
   uint32_t len);
+#define flash_area_read(_fap, _off, _dst, _len) \
+    ({ \
+        int _res = _flash_area_read((_fap), (_off), (_dst), (_len)); \
+        printf("flash_area_read: (%s:%d) %s:%d: 0x%llx 0x%llx -> %d\n", \
+               __FUNCTION__, __LINE__, \
+               __FILE__, __LINE__, (unsigned long long)(_off), (unsigned long long)(_len), _res); \
+        _res; \
+    })
 int flash_area_write(const struct flash_area *, uint32_t off, const void *src,
   uint32_t len);
 int flash_area_erase(const struct flash_area *, uint32_t off, uint32_t len);
