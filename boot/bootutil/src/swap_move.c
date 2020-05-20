@@ -144,6 +144,8 @@ swap_read_status_bytes(const struct flash_area *fap,
     off = boot_status_off(fap);
     for (i = max_entries; i > 0; i--) {
         rc = flash_area_read_is_empty(fap, off + (i - 1) * write_sz, &status, 1);
+	/* If this gives an error, we don't know if this data is
+	 * erased or not. */
         if (rc < 0) {
             return BOOT_EFLASH;
         }
