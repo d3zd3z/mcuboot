@@ -52,7 +52,8 @@
 # semicolon-separated list (i.e., a CMake list).
 BOOTLOADER_OVERLAY_CONFIG ?=
 
-BOARD ?= frdm_k64f
+# BOARD ?= frdm_k64f
+BOARD ?= lpcxpresso55s69_cpu0
 
 .PHONY: check boot hello1 clean_boot clean_hello1 \
 	hello2 clean_hello2 flash_boot flash_hello1 flash_hello2
