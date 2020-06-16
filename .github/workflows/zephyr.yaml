@@ -1,0 +1,82 @@
+# For development, trigger this on any push.
+on: push
+
+# Eventually, we'll want to limit this to pull requests.
+# on: ???
+
+jobs:
+  environment:
+    name: Zephyr build
+    runs-on: ubuntu-latest
+    env:
+      ZEPHYR_SDK_INSTALL_DIR: ~/zephyr-sdk
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        path: mcuboot
+          #    - uses: actions/checkout@v2
+          #      with:
+          #        path: zephyr
+          #        repository: zephyrproject-rtos/zephyr
+    - name: Install Zephyr SDK
+      run: |
+        # curl -L -O https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.3/zephyr-toolchain-arm-0.11.3-setup.run
+        # chmod 755 zephyr-toolchain-arm-0.11.3-setup.run
+        # ./zephyr-toolchain-arm-0.11.3-setup.run -- -y -rc -d $GITHUB_WORKSPACE/zephyr-sdk
+        curl -L -O https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.3/zephyr-sdk-0.11.3-setup.run
+        chmod 755 zephyr-sdk-0.11.3-setup.run
+        ./zephyr-sdk-0.11.3-setup.run -- -y -rc -d $GITHUB_WORKSPACE/zephyr-sdk
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        # sudo apt upgrade
+        sudo apt install --no-install-recommends  ninja-build gperf ccache dfu-util \
+          device-tree-compiler \
+          wget python3-dev python3-pip python3-setuptools python3-tk \
+          python3-wheel xz-utils file make gcc gcc-multilib g++-multilib \
+          libsdl2-dev
+    - name: Update PATH for west
+      run: |
+        echo "::add-path::$HOME/.local/bin"
+    - name: Install West
+      run: |
+        pip3 install --user west
+    - name: Bring in dependencies with West
+      run: |
+        west init .
+        west update
+        ls -CFs
+    - name: Install Python dependencies
+      run: |
+        id
+        # sudo pip3 install setuptools
+        # sudo pip3 install wheel
+        pip3 install --user -r mcuboot/scripts/requirements.txt
+        # sudo pip3 install -r zephyr/scripts/requirements.txt
+        pip3 install --user -r zephyr/scripts/requirements-base.txt
+    - name: Try building a Zephyr version
+      working-directory: mcuboot/samples/zephyr
+      run: |
+        pwd
+        echo $GITHUB_WORKSPACE
+        ls -l $GITHUB_WORKSPACE
+        export ZEPHYR_SDK_INSTALL_DIR=$GITHUB_WORKSPACE/zephyr-sdk
+        export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+        source $GITHUB_WORKSPACE/zephyr/zephyr-env.sh
+        env
+        ls -l $ZEPHYR_SDK_INSTALL_DIR
+        make test-good-rsa
+
+        #     - name: Print the environment
+        #       run: |
+        #         uname -a
+        #         lscpu
+        #         free
+        #         pwd
+        #     - name: Mynewt install
+        #       run: |
+        #         ./ci/mynewt_install.sh
+        #     - name: Mynewt run
+        #       run: |
+        #         ./ci/mynewt_run.sh
