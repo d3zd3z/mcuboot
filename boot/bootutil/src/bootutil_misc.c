@@ -260,22 +260,25 @@ boot_read_swap_state(const struct flash_area *fap,
     off = boot_magic_off(fap);
     rc = flash_area_read_is_empty(fap, off, magic, BOOT_MAGIC_SZ);
     if (rc < 0) {
-        state->magic = BOOT_MAGIC_BAD;
-    } else if (rc == 1) {
+        return BOOT_EFLASH;
+    }
+    if (rc == 1) {
         state->magic = BOOT_MAGIC_UNSET;
     } else {
         state->magic = boot_magic_decode(magic);
     }
 
-    swap_info = 0;
     off = boot_swap_info_off(fap);
     rc = flash_area_read_is_empty(fap, off, &swap_info, sizeof swap_info);
+    if (rc < 0) {
+        return BOOT_EFLASH;
+    }
 
     /* Extract the swap type and image number */
     state->swap_type = BOOT_GET_SWAP_TYPE(swap_info);
     state->image_num = BOOT_GET_IMAGE_NUM(swap_info);
 
-    if (rc == 1 || rc < 0 || state->swap_type > BOOT_SWAP_TYPE_REVERT) {
+    if (rc == 1 || state->swap_type > BOOT_SWAP_TYPE_REVERT) {
         state->swap_type = BOOT_SWAP_TYPE_NONE;
         state->image_num = 0;
     }
@@ -283,7 +286,10 @@ boot_read_swap_state(const struct flash_area *fap,
     off = boot_copy_done_off(fap);
     rc = flash_area_read_is_empty(fap, off, &state->copy_done,
             sizeof state->copy_done);
-    if (rc == 1 || rc < 0) {
+    if (rc < 0) {
+        return BOOT_EFLASH;
+    }
+    if (rc == 1) {
         state->copy_done = BOOT_FLAG_UNSET;
     } else {
         state->copy_done = boot_flag_decode(state->copy_done);
@@ -292,7 +298,10 @@ boot_read_swap_state(const struct flash_area *fap,
     off = boot_image_ok_off(fap);
     rc = flash_area_read_is_empty(fap, off, &state->image_ok,
                                   sizeof state->image_ok);
-    if (rc == 1 || rc < 0) {
+    if (rc < 0) {
+        return BOOT_EFLASH;
+    }
+    if (rc == 1) {
         state->image_ok = BOOT_FLAG_UNSET;
     } else {
         state->image_ok = boot_flag_decode(state->image_ok);
