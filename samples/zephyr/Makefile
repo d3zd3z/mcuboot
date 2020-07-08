@@ -114,6 +114,15 @@ boot: check
 		ninja)
 	cp $(BUILD_DIR_BOOT)/zephyr/zephyr.bin mcuboot.bin
 
+puncover: check
+	(mkdir -p $(BUILD_DIR_BOOT) && \
+		cd $(BUILD_DIR_BOOT) && \
+		cmake -DOVERLAY_CONFIG=$(BOOTLOADER_OVERLAY_CONFIG) \
+			-G"Ninja" \
+			-DBOARD=$(BOARD) \
+			$(SOURCE_DIRECTORY)/../../boot/zephyr && \
+		ninja puncover)
+
 clean_boot: check
 	rm -rf $(BUILD_DIR_BOOT)
 
