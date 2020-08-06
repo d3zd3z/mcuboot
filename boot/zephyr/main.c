@@ -132,7 +132,8 @@ static void do_boot(struct boot_rsp *rsp)
     assert(rc == 0);
 
     /* Override this for the LPC device. */
-    flash_base = 0x30000000;
+    printf("flash_base: 0x%x\n", flash_base);
+    // flash_base = 0x30000000;
 
     vt = (struct arm_vector_table *)(flash_base +
                                      rsp->br_image_off +
