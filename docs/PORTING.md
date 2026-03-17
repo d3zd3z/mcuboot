@@ -13,9 +13,10 @@ This document describes the requirements and necessary steps required to port
   get the flash's minimum write size, and read/write/erase individual sectors.
 
 * `MCUboot` doesn't bundle a cryptographic library, which means the target
-  OS must already have it bundled. The supported libraries at the moment are
-  either `Mbed TLS` or the set `tinycrypt` + `Mbed TLS` (where `Mbed TLS` is
-  used to provide functionality not existing in `tinycrypt`).
+  OS must already have it bundled. New ports should use the PSA Crypto API
+  backend (`MCUBOOT_USE_PSA_CRYPTO`). The direct Mbed TLS and TinyCrypt backends
+  are deprecated and remain only to support existing ports; they should not be
+  used for new work.
 
 # Steps to port
 
@@ -174,6 +175,22 @@ int      flash_area_id_to_multi_image_slot(int image_index, int area_id);
 *As of writing, it is possible that MCUboot will open a flash area multiple times simultaneously (through nested calls to `flash_area_open`). As a result, MCUboot may call `flash_area_close` on a flash area that is still opened by another part of MCUboot. As a workaround when porting, it may be necessary to implement a counter of the number of times a given flash area has been opened by MCUboot. The `flash_area_close` implementation should only fully deinitialize the underlying flash area when the open counter is decremented to 0. See [this GitHub PR](https://github.com/mcu-tools/mcuboot/pull/894/) for a more detailed discussion.*
 
 ---
+
+## Crypto backend
+
+MCUboot supports two crypto backends, selected via
+`mcuboot_config.h`:
+
+- **PSA Crypto API** (`MCUBOOT_USE_PSA_CRYPTO`) — the preferred
+  backend for new ports. Uses the standardized PSA Crypto interface.
+  Activates `encrypted_psa.c` and `ed25519_psa.c`. Your platform
+  must provide a PSA Crypto implementation (e.g., Mbed TLS 3.x
+  configured as a PSA provider, or TF-M).
+
+- **Direct Mbed TLS** (`MCUBOOT_USE_MBED_TLS`) and **TinyCrypt**
+  (`MCUBOOT_USE_TINYCRYPT`) — **deprecated**. These backends remain
+  in the codebase only to support existing ports. Do not use for
+  new ports. Requires `calloc`/`free` (see below).
 
 ## Memory management for Mbed TLS
 

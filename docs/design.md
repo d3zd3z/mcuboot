@@ -223,7 +223,9 @@ one of these two strategies.
 ### [Swap using scratch](#image-swap-using-scratch)
 
 Please note that the swap-using-scratch algorithm may be removed in the coming
-future.
+future. For new designs, prefer `swap-using-offset` over `swap-using-move` over
+`swap-using-scratch`. See [swap-internals.md](swap-internals.md) for code-level
+details on each algorithm.
 
 When swap-using-scratch algorithm is used, in addition to the slots of
 image areas, the bootloader requires a scratch area to allow for reliable
@@ -1293,6 +1295,12 @@ producing signed images, see: [signed_images](signed_images.md).
 
 If you want to enable and use encrypted images, see:
 [encrypted_images](encrypted_images.md).
+
+MCUboot has two encryption implementations: `encrypted.c` (direct
+MbedTLS API) and `encrypted_psa.c` (PSA Crypto API). The PSA variant
+is selected when `MCUBOOT_USE_PSA_CRYPTO` is defined and is preferred
+for new ports. Both support the same key-wrap schemes (RSA-OAEP,
+AES-KW, ECIES-P256, ECIES-X25519); only one is compiled per build.
 
 ---
 ***Note***
