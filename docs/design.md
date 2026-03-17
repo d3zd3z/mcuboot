@@ -27,6 +27,14 @@
 
 # Bootloader
 
+## [Code Organization](#code-organization)
+
+This document specifies the MCUboot protocol: on-flash formats, swap state
+machines, and behavior guarantees. For a developer-oriented guide to the C
+source code — file map, data structures, boot call graph, and configuration
+macro effects — see [code-architecture.md](code-architecture.md). For details
+on the swap algorithm implementations, see [swap-internals.md](swap-internals.md).
+
 ## [Summary](#summary)
 
 MCUboot comprises two packages:
